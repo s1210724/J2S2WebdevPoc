@@ -2,39 +2,85 @@ const socket = io();
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
+const pressedKeys = new Set();
+const SMOOTHING = .6;
 
-let player = { x: 200, y: 200 };
-let players = {};
+let playerId = null;
+let players = {}; // stores all player data needed for rendering: { id: { lastpos, target, rgb, name } }
 
-document.addEventListener("keydown", (e) => {
+// handle key presses
+document.addEventListener("keydown", (event) => pressedKeys.add(event.code));
+document.addEventListener("keyup", (event) => pressedKeys.delete(event.code));
 
-    if (e.key === "w") player.y -= 5;
-    if (e.key === "s") player.y += 5;
-    if (e.key === "a") player.x -= 5;
-    if (e.key === "d") player.x += 5;
+// get name and join game
+socket.emit("join", prompt("Enter your name:"));
 
-    socket.emit("move", player);
+// store your own ID
+socket.on("yourId", (id) => playerId = id);
 
-});
+// send input to server at fixed interval
+setInterval(() => {
+    if (pressedKeys.size > 0 && playerId) {
+        socket.emit("input", Array.from(pressedKeys));
+    }
+}, 1000 / 30);
 
+// receive server state
 socket.on("state", (serverPlayers) => {
-    players = serverPlayers;
+    for (let id in serverPlayers) {
+        const serverP = serverPlayers[id];
+
+        if (!players[id]) {
+            // initialize lastpos and target
+            players[id] = {
+                lastpos: { x: serverP.x, y: serverP.y },
+                target: { x: serverP.x, y: serverP.y },
+                rgb: serverP.rgb,
+                name: serverP.name
+            };
+        } else {
+            players[id].target.x = serverP.x;
+            players[id].target.y = serverP.y;
+            players[id].rgb = serverP.rgb;
+            players[id].name = serverP.name;
+        }
+    }
+
+    // remove disconnected players
+    for (let id in players) {
+        if (!serverPlayers[id]) delete players[id];
+    }
 });
 
-function gameLoop() {
+// linear interpolation helper
+function lerp(a, b, t) {
+    return a + (b - a) * t;
+}
 
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+// continuous render loop for smooth movement
+function gameLoop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     for (let id in players) {
+        const p = players[id];
 
-        let p = players[id];
+        // interpolate lastpos towards target
+        p.lastpos.x = lerp(p.lastpos.x, p.target.x, SMOOTHING);
+        p.lastpos.y = lerp(p.lastpos.y, p.target.y, SMOOTHING);
 
+        // draw player
         ctx.fillStyle = p.rgb;
-        ctx.fillRect(p.x, p.y, 40, 40);
+        ctx.fillRect(p.lastpos.x, p.lastpos.y, 40, 40);
 
+        // draw player name
+        ctx.fillStyle = "black";
+        ctx.font = "14px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(p.name, p.lastpos.x + 20, p.lastpos.y - 5);
     }
 
     requestAnimationFrame(gameLoop);
 }
 
+// start the loop
 gameLoop();
