@@ -1,19 +1,16 @@
 const express = require("express");
 const app = express();
+app.use(express.static("public"));
 const http = require("http").createServer(app);
 const io = require("socket.io")(http);
 
 let numbers = [];
-
-app.use(express.static("public"));
-
 let players = {};
 
 io.on("connection", (socket) => {
-
-    socket.on("join", (name) => {
+    socket.on("join", (playerData) => {
         const rgb = `rgb(${Math.floor(Math.random() * 255)},${Math.floor(Math.random() * 255)},${Math.floor(Math.random() * 255)})`;
-        players[socket.id] = { x: 200, y: 200, rgb, name };
+        players[socket.id] = { x: 200, y: 200, rgb, name: playerData.name };
         socket.emit("yourId", socket.id);
     });
 
@@ -42,7 +39,6 @@ io.on("connection", (socket) => {
             ack(0); // or send a default value if no ack provided
         }
     });
-
     socket.on("disconnect", () => delete players[socket.id]);
 });
 

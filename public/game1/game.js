@@ -7,7 +7,7 @@ const SMOOTHING = .6;
 
 let newNumPending = false;
 let numIndex = 0;
-let playerId = null;
+let player = null;
 let players = {}; // stores all player data needed for rendering: { id: { lastpos, target, rgb, name } }
 
 // handle key presses
@@ -15,14 +15,17 @@ document.addEventListener("keydown", (event) => pressedKeys.add(event.code));
 document.addEventListener("keyup", (event) => pressedKeys.delete(event.code));
 
 // get name and join game
-socket.emit("join", prompt("Enter your name:"));
+socket.emit("join", {
+    game: 'movingSquares',
+    name: prompt("Enter your name:")
+});
 
 // store your own ID
-socket.on("yourId", (id) => playerId = id);
+socket.on("yourId", (id) => player = id);
 
 // send input to server at fixed interval
 setInterval(() => {
-    if (pressedKeys.size > 0 && playerId) {
+    if (pressedKeys.size > 0 && player) {
         socket.emit("input", Array.from(pressedKeys));
     }
 }, 1000 / 30);

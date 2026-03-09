@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Game 1</title>
+<style>
+body{
+    background-color: darkslategrey;
+    margin:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+canvas{
+    background:white;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="game" width="800" height="600"></canvas>
+
+<script>
+const GAME_ID = "game1";
+</script>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="game.js"></script>
+
+</body>
+</html>
