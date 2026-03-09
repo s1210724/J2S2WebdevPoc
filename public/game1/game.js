@@ -7,7 +7,7 @@ const SMOOTHING = .6;
 
 let newNumPending = false;
 let numIndex = 0;
-let player = null;
+let player = {};
 let players = {}; // stores all player data needed for rendering: { id: { lastpos, target, rgb, name } }
 
 // handle key presses
@@ -21,12 +21,13 @@ socket.emit("join", {
 });
 
 // store your own ID
-socket.on("yourId", (id) => player = id);
+socket.on("yourId", (roomId, socketId) => player = { room: roomId, socket: socketId });
+console.log(player);
 
 // send input to server at fixed interval
 setInterval(() => {
     if (pressedKeys.size > 0 && player) {
-        socket.emit("input", Array.from(pressedKeys));
+        socket.emit("input", player.room, Array.from(pressedKeys));
     }
 }, 1000 / 30);
 
