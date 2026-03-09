@@ -32,8 +32,28 @@ io.on("connection", (socket) => {
         player.y = Math.max(0, Math.min(player.y, 600 - 40));
     });
 
+    // socket handler: client requests next number for an index
+    socket.on("newNum", (index, ack) => {
+        const num = newNum(index);
+        if (typeof ack === "function") {
+            ack(num); // send result via acknowledgement callback if provided
+            console.log(`total numbers ${numbers.length}`);
+        } else {
+            ack(0); // or send a default value if no ack provided
+        }
+    });
+
     socket.on("disconnect", () => delete players[socket.id]);
 });
+
+// get next number for index or create it
+function newNum(index) {
+    if (index + 1 > numbers.length) {
+        numbers.push(Math.floor(Math.random() * 6) + 1);
+    }
+
+    return numbers[index];
+}
 
 // broadcast state 30 times/sec
 setInterval(() => {

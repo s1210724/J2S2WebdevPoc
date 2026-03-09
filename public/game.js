@@ -5,6 +5,8 @@ const ctx = canvas.getContext("2d");
 const pressedKeys = new Set();
 const SMOOTHING = .6;
 
+let newNumPending = false;
+let numIndex = 0;
 let playerId = null;
 let players = {}; // stores all player data needed for rendering: { id: { lastpos, target, rgb, name } }
 
@@ -24,6 +26,27 @@ setInterval(() => {
         socket.emit("input", Array.from(pressedKeys));
     }
 }, 1000 / 30);
+
+// get new number from server on enter press
+document.addEventListener("keydown", (event) => {
+    if (event.code === "Enter") {
+        // only request when no request is pending and increment the index
+        // only after the server acknowledges so other keydowns (movement)
+        // won't advance the index
+        if (!newNumPending) {
+            newNumPending = true;
+            socket.emit("newNum", numIndex, (num) => {
+                console.log(`New number from server: ${num}, index: ${numIndex}`);
+                newNumPending = false;
+                // increment index only after successful response
+                numIndex++;
+            });
+        }
+
+        // prevent default Enter behavior
+        event.preventDefault();
+    }
+});
 
 // receive server state
 socket.on("state", (serverPlayers) => {
