@@ -1,3 +1,5 @@
+// client side moving squares game logic
+
 const socket = io();
 
 const canvas = document.getElementById("game");
@@ -22,12 +24,11 @@ socket.emit("join", {
 
 // store your own ID
 socket.on("yourId", (roomId, socketId) => player = { room: roomId, socket: socketId });
-console.log(player);
 
 // send input to server at fixed interval
 setInterval(() => {
     if (pressedKeys.size > 0 && player) {
-        socket.emit("input", player.room, Array.from(pressedKeys));
+        socket.emit("g1Input", player.room, Array.from(pressedKeys));
     }
 }, 1000 / 30);
 
@@ -39,8 +40,7 @@ document.addEventListener("keydown", (event) => {
         // won't advance the index
         if (!newNumPending) {
             newNumPending = true;
-            socket.emit("newNum", numIndex, (num) => {
-                console.log(`New number from server: ${num}, index: ${numIndex}`);
+            socket.emit("g1NewNum", numIndex, (num) => {
                 newNumPending = false;
                 // increment index only after successful response
                 numIndex++;

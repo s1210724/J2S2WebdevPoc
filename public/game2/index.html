@@ -1,21 +1,193 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Game 2</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Game 2 — Click Race</title>
 </head>
-
 <body>
+    <div id="countdown" aria-live="assertive" style="position:fixed;z-index:1;top:20%;left:50%;transform:translate(-50%, -50%);font-size:4rem;color:var(--neon);display:none;">Enough players found get ready!</div>
+    <aside id="leaderboard" aria-label="Leaderboard">
+        <h3>Leaderboard</h3>
+        <ol id="leaders">
+            <li><span id="1name" class="name">You</span><span class="pts" id="1score">0</span></li>
+            <li><span id="2name" class="name">player not yet joined</span><span class="pts" id="2score">-</span></li>
+        </ol>
+    </aside>
 
-<h1>Click Race</h1>
-<button id="btn">Click!</button>
-<h2 id="score">0</h2>
+    <div class="wrap">
+        <main class="card" role="main">
+            <h1>Click Race</h1>
 
-<script>
-const GAME_ID = "game2";
-</script>
+            <button id="btn" aria-label="Click button">Click!</button>
 
-<script src="/socket.io/socket.io.js"></script>
-<script src="game.js"></script>
+            <h2 id="score">0</h2>
+            <div class="hint">Click as fast as you can — scoreboard updates live.</div>
+        </main>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="game.js"></script>
+    <style>
+        :root{
+            --bg-1:#07080a;
+            --bg-2:#0f1720;
+            --panel: rgba(255,255,255,0.03);
+            --muted: #9fb6c9;
+            --neon: #00f5d4; /* adjust neon color */
+            --neon-2: #6ee7b7;
+        }
 
+        html,body{
+            height:100%;
+            margin:0;
+            font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            background: radial-gradient(1200px 600px at 10% 10%, rgba(0,245,212,0.03), transparent),
+                                    linear-gradient(180deg, var(--bg-1), var(--bg-2));
+            color:#dfeef6;
+            -webkit-font-smoothing:antialiased;
+            -moz-osx-font-smoothing:grayscale;
+        }
+
+        /* layout */
+        .wrap{
+            min-height:100vh;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:40px;
+            box-sizing:border-box;
+        }
+
+        .card{
+            width:100%;
+            max-width:720px;
+            text-align:center;
+            padding:48px 36px;
+            border-radius:16px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+            box-shadow: 0 8px 40px rgba(2,6,23,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+            backdrop-filter: blur(6px);
+            position:relative;
+        }
+
+        h1{
+            margin:0 0 18px 0;
+            font-size:1.6rem;
+            letter-spacing:0.6px;
+            color:var(--neon-2);
+            text-shadow: 0 2px 10px rgba(0,245,212,0.06);
+        }
+
+        #score{
+            margin:18px 0 28px 0;
+            font-size:2.2rem;
+            color:#e6f7f1;
+            font-weight:700;
+        }
+
+        /* Big round neon button */
+        #btn{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            width:200px;
+            height:200px;
+            border-radius:50%;
+            background: linear-gradient(180deg,#0b1116 0%, #0a0e13 60%);
+            color:var(--neon);
+            font-size:1.6rem;
+            font-weight:700;
+            border:4px solid rgba(0,245,212,0.14);
+            cursor:pointer;
+            outline:none;
+            box-shadow:
+                0 6px 30px rgba(0,0,0,0.6),
+                0 0 18px rgba(0,245,212,0.06),
+                0 0 40px rgba(0,245,212,0.06);
+            transition: transform 160ms cubic-bezier(.2,.9,.3,1), box-shadow 160ms;
+            user-select:none;
+        }
+
+        /* neon ring effect */
+        #btn::after{
+            content:"";
+            position:absolute;
+            pointer-events:none;
+            width:240px;
+            height:240px;
+            border-radius:50%;
+            filter: blur(18px);
+            background: radial-gradient(circle at center, rgba(0,245,212,0.18), transparent 30%);
+            transition: opacity 160ms;
+            opacity:0.8;
+        }
+
+        #btn:hover{
+            transform: translateY(-6px) scale(1.02);
+            box-shadow:
+                0 12px 50px rgba(0,0,0,0.7),
+                0 0 28px rgba(0,245,212,0.16),
+                0 0 80px rgba(0,245,212,0.12);
+        }
+
+        #btn:active{
+            transform: translateY(-2px) scale(.99);
+        }
+
+        /* small helper text under button */
+        .hint{
+            margin-top:14px;
+            color:var(--muted);
+            font-size:0.95rem;
+        }
+
+        /* Leaderboard panel at top-right */
+        #leaderboard{
+            position:fixed;
+            top:20px;
+            right:20px;
+            width:240px;
+            max-width:calc(100% - 40px);
+            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+            border-radius:12px;
+            padding:12px 14px;
+            box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+            border:1px solid rgba(0,245,212,0.08);
+            backdrop-filter: blur(6px);
+        }
+
+        #leaderboard h3{
+            margin:6px 0 8px 0;
+            font-size:1rem;
+            color:var(--neon-2);
+        }
+
+        #leaders{
+            list-style:none;
+            padding:0;
+            margin:0;
+            color:var(--muted);
+            font-size:0.95rem;
+        }
+
+        #leaders li{
+            display:flex;
+            justify-content:space-between;
+            padding:6px 0;
+            border-bottom:1px dashed rgba(255,255,255,0.02);
+        }
+
+        #leaders li:last-child{ border-bottom:none; }
+
+        .name{ color:#e6f7f1; font-weight:600; }
+        .pts{ color:var(--neon); font-weight:700; }
+
+        /* responsive */
+        @media (max-width:600px){
+            #btn{ width:160px; height:160px; font-size:1.25rem; }
+            .card{ padding:28px 20px; }
+            #leaderboard{ width:200px; left:20px; right:auto; top:auto; bottom:20px; }
+        }
+    </style>
 </body>
 </html>
