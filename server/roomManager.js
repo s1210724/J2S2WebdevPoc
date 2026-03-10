@@ -20,6 +20,22 @@ function createRoom(games, game) {
     games[game] = games[game] || {};
     games[game][roomId] = {};
 
+    if (game == 'movingSquares') {
+        games[game][roomId]['serverData'] = {
+            powerup: {
+                active: false,
+                lastPowerup: Date.now(),
+                attackingPlayer: null,
+                displayAttr: {
+                    x: Math.random() * 760,
+                    y: Math.random() * 560,
+                    size: 5,
+                    opacity: 0,
+                },
+            }
+        };
+    }
+
     return roomId;
 }
 

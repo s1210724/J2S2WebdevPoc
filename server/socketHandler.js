@@ -2,6 +2,7 @@ const { getGameRoom } = require("./roomManager");
 const movingSquares = require("./games/movingSquares");
 const clickGame = require("./games/clickGame");
 const numbers = require("./utils/numbers");
+const serverSideLogic = require("./ServersideLogic");
 
 const games = {};
 
@@ -116,6 +117,8 @@ module.exports = function(io) {
 
         for (let game in games) {
             for (let roomId in games[game]) {
+
+                serverSideLogic.updateServerState(io, games);
 
                 io.to(roomId).emit(
                     "state",

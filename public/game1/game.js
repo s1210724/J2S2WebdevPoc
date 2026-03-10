@@ -7,10 +7,12 @@ const ctx = canvas.getContext("2d");
 const pressedKeys = new Set();
 const SMOOTHING = .6;
 
+let animationFrame;
 let newNumPending = false;
 let numIndex = 0;
 let player = {};
 let players = {}; // stores all player data needed for rendering: { id: { lastpos, target, rgb, name } }
+let powerup = {};
 
 // handle key presses
 document.addEventListener("keydown", (event) => pressedKeys.add(event.code));
@@ -53,9 +55,10 @@ document.addEventListener("keydown", (event) => {
 });
 
 // receive server state
-socket.on("state", (serverPlayers) => {
-    for (let id in serverPlayers['players']) {
-        const serverP = serverPlayers['players'][id];
+socket.on("state", (serverData) => {
+    for (let id in serverData['players']) {
+        const serverP = serverData['players'][id];
+        powerup = serverData['serverData']['powerup'];
 
         if (!players[id]) {
             // initialize lastpos and target
@@ -63,20 +66,28 @@ socket.on("state", (serverPlayers) => {
                 lastpos: { x: serverP.x, y: serverP.y },
                 target: { x: serverP.x, y: serverP.y },
                 rgb: serverP.rgb,
-                name: serverP.name
+                name: serverP.name,
+                size: serverP.size
             };
         } else {
             players[id].target.x = serverP.x;
             players[id].target.y = serverP.y;
             players[id].rgb = serverP.rgb;
             players[id].name = serverP.name;
+            players[id].size = serverP.size;
         }
     }
 
     // remove disconnected players
     for (let id in players) {
-        if (!serverPlayers['players'][id]) delete players[id];
+        if (!serverData['players'][id]) delete players[id];
     }
+});
+
+socket.on("killed", () => {
+    cancelAnimationFrame(animationFrame);
+    socket.disconnect();
+    location.reload();
 });
 
 // linear interpolation helper
@@ -87,7 +98,16 @@ function lerp(a, b, t) {
 // continuous render loop for smooth movement
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // draw powerup
+    if (powerup.displayAttr) {
+        ctx.fillStyle = `rgba(255,0,0,${powerup.displayAttr.opacity})`;
+        ctx.beginPath();
+        ctx.fillRect(powerup.displayAttr.x, powerup.displayAttr.y, powerup.displayAttr.size, powerup.displayAttr.size);
+        ctx.fill();
+    }
 
+    // draw all individual players
     for (let id in players) {
         const p = players[id];
 
@@ -97,16 +117,16 @@ function gameLoop() {
 
         // draw player
         ctx.fillStyle = p.rgb;
-        ctx.fillRect(p.lastpos.x, p.lastpos.y, 40, 40);
+        ctx.fillRect(p.lastpos.x, p.lastpos.y, p.size, p.size);
 
         // draw player name
         ctx.fillStyle = "black";
         ctx.font = "14px Arial";
         ctx.textAlign = "center";
-        ctx.fillText(p.name, p.lastpos.x + 20, p.lastpos.y - 5);
+        ctx.fillText(p.name, p.lastpos.x + p.size / 2, p.lastpos.y - 5);
     }
 
-    requestAnimationFrame(gameLoop);
+    animationFrame = requestAnimationFrame(gameLoop);
 }
 
 // start the loop

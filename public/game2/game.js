@@ -16,7 +16,6 @@ socket.emit("join", {
 });
 
 btn.onclick = () => {
-    console.log("Button clicked, emitting g2Click event");
     socket.emit("g2Click", player.room);
 };
 

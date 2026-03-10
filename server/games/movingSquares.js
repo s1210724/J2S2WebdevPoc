@@ -11,6 +11,7 @@ function addPlayer(games, game, roomId, socketId, name) {
     games[game][roomId]['players'][socketId] = {
         x: 200,
         y: 200,
+        size: 40,
         rgb,
         name
     };
