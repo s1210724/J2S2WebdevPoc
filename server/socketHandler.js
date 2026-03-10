@@ -40,7 +40,7 @@ module.exports = function(io) {
                 );
                 
                 // check if room is full and send start signal
-                if (Object.keys(games[playerData.game][roomId]).length === 2) {
+                if (Object.keys(games[playerData.game][roomId]['players']).length === 2) {
                     io.to(roomId).emit("startGame");
                 }
             }
@@ -55,12 +55,13 @@ module.exports = function(io) {
 
             if (!gameName || !roomId) return;
 
-            delete games[gameName]?.[roomId]?.[socket.id];
+            delete games[gameName]?.[roomId]?.['players'][socket.id];
 
             if (
                 games[gameName] &&
                 games[gameName][roomId] &&
-                Object.keys(games[gameName][roomId]).length === 0
+                games[gameName][roomId]['players'] &&
+                Object.keys(games[gameName][roomId]['players']).length === 0
             ) {
                 delete games[gameName][roomId];
             }

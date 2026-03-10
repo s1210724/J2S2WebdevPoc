@@ -54,8 +54,8 @@ document.addEventListener("keydown", (event) => {
 
 // receive server state
 socket.on("state", (serverPlayers) => {
-    for (let id in serverPlayers) {
-        const serverP = serverPlayers[id];
+    for (let id in serverPlayers['players']) {
+        const serverP = serverPlayers['players'][id];
 
         if (!players[id]) {
             // initialize lastpos and target
@@ -75,7 +75,7 @@ socket.on("state", (serverPlayers) => {
 
     // remove disconnected players
     for (let id in players) {
-        if (!serverPlayers[id]) delete players[id];
+        if (!serverPlayers['players'][id]) delete players[id];
     }
 });
 

@@ -21,7 +21,7 @@ btn.onclick = () => {
 };
 
 socket.on("state", (gameState) => {
-    const playerData = gameState;
+    const playerData = gameState['players'];
     updateLeaderboard(playerData);
     updateScore(playerData[player.socket].score);
 });

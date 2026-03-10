@@ -6,8 +6,9 @@ function addPlayer(games, game, roomId, socketId, name) {
 
     games[game] = games[game] || {};
     games[game][roomId] = games[game][roomId] || {};
+    games[game][roomId]['players'] = games[game][roomId]['players'] || {};
 
-    games[game][roomId][socketId] = {
+    games[game][roomId]['players'][socketId] = {
         x: 200,
         y: 200,
         rgb,
@@ -17,7 +18,7 @@ function addPlayer(games, game, roomId, socketId, name) {
 
 function handleInput(games, game, roomId, socketId, keys) {
 
-    const player = games[game]?.[roomId]?.[socketId];
+    const player = games[game]?.[roomId]?.['players']?.[socketId];
     if (!player) return;
 
     const speed = 5;
