@@ -5,7 +5,9 @@ function getGameRoom(games, game) {
     }
 
     for (let roomId in games[game]) {
-        if (game == 'movingSquares' && Object.keys(games[game][roomId]['players']).length < 5 || game == 'clickGame' && Object.keys(games[game][roomId]['players']).length < 2) {
+        if (game == 'movingSquares' && Object.keys(games[game][roomId]['players']).length < 5 || 
+        game == 'clickGame' && Object.keys(games[game][roomId]['players']).length < 2 || 
+        game == 'multiplayerFPS' && Object.keys(games[game][roomId]['players']).length < 2) {
             return roomId;
         }
     }

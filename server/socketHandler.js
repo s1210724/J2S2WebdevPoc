@@ -1,6 +1,7 @@
 const { getGameRoom } = require("./roomManager");
 const movingSquares = require("./games/movingSquares");
 const clickGame = require("./games/clickGame");
+const multiplayerFPS = require("./games/multiplayerFPS");
 const numbers = require("./utils/numbers");
 const serverSideLogic = require("./ServersideLogic");
 
@@ -40,6 +41,21 @@ module.exports = function(io) {
                     playerData.name
                 );
                 
+                // check if room is full and send start signal
+                if (Object.keys(games[playerData.game][roomId]['players']).length === 2) {
+                    io.to(roomId).emit("startGame");
+                }
+            }
+
+            if (playerData.game === "multiplayerFPS") {
+                multiplayerFPS.addPlayer(
+                    games,
+                    playerData.game,
+                    roomId,
+                    socket.id,
+                    playerData.name
+                );
+
                 // check if room is full and send start signal
                 if (Object.keys(games[playerData.game][roomId]['players']).length === 2) {
                     io.to(roomId).emit("startGame");
@@ -107,6 +123,23 @@ module.exports = function(io) {
                 gameName, 
                 roomId, 
                 socket.id
+            );
+        });
+
+        /* -----------  Game 4 inputs  ----------- */
+
+        socket.on("g4UpdatePos", (Data) => {
+            const gameName = socket.data.game;
+
+            // console.log(games);
+
+            multiplayerFPS.handleUpdate(
+                games,
+                gameName,
+                Data.roomId,
+                socket.id,
+                Data.position,
+                Data.rotation
             );
         });
     });
